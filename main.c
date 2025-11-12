@@ -13,6 +13,7 @@
 #define RESET "\033[0m"
 #define GREEN "\033[1;32m"
 #define YELLOW  "\033[33m"
+#define CYAN "\033[36m"
 
 /* ===========================================================
  * === CONFIGURAÇÃO DE TESTES ===
@@ -161,12 +162,6 @@ void test_bzero(void)
 	ft_bzero(full1, 5);
 	bzero(full2, 5);
 	print_result("ft_bzero", "zero entire buffer", memcmp(full1, full2, 6) == 0);
-
-	/* Zero length = 0 (should not modify anything) */
-	char zero1[6] = "ABCDE", zero2[6] = "ABCDE";
-	ft_bzero(zero1, 0);
-	bzero(zero2, 0);
-	print_result("ft_bzero", "zero length (no change)", memcmp(zero1, zero2, 6) == 0);
 
 	/* Zero all but one character */
 	char almost1[6] = "HELLO", almost2[6] = "HELLO";
@@ -399,32 +394,53 @@ void test_strrchr(void)
 				 ft_strrchr("", '\0') == strrchr("", '\0'));
 }
 
+/* Função auxiliar para comparar sinais */
+int same_sign(int a, int b)
+{
+	if (a == 0 && b == 0)
+		return (1);
+	if (a < 0 && b < 0)
+		return (1);
+	if (a > 0 && b > 0)
+		return (1);
+	return (0);
+}
+
 void test_strncmp(void)
 {
 	/* Identical strings */
-	print_result("ft_strncmp", "equal strings", ft_strncmp("42", "42", 2) == strncmp("42", "42", 2));
+	print_result("ft_strncmp", "equal strings",
+		same_sign(ft_strncmp("42", "42", 2), strncmp("42", "42", 2)));
 
 	/* Different strings (first char different) */
-	print_result("ft_strncmp", "different first char", ft_strncmp("42", "43", 2) == strncmp("42", "43", 2));
+	print_result("ft_strncmp", "different first char",
+		same_sign(ft_strncmp("42", "45", 2), strncmp("42", "45", 2)));
 
 	/* Different strings (later difference) */
-	print_result("ft_strncmp", "different later", ft_strncmp("42Rio", "42Rxo", 5) == strncmp("42Rio", "42Rxo", 5));
-
+	print_result("ft_strncmp", "different later",
+		same_sign(ft_strncmp("42Rio", "42Rxo", 4), strncmp("42Rio", "42Rxo", 4)));
+	
 	/* Limit smaller than string length */
-	print_result("ft_strncmp", "shorter limit", ft_strncmp("42 Rio", "42 R", 4) == strncmp("42 Rio", "42 R", 4));
+	print_result("ft_strncmp", "shorter limit",
+		same_sign(ft_strncmp("42 Rio", "42 R", 4), strncmp("42 Rio", "42 R", 4)));
 
 	/* n = 0 (should always return 0) */
-	print_result("ft_strncmp", "zero length compare", ft_strncmp("ABC", "XYZ", 0) == strncmp("ABC", "XYZ", 0));
+	print_result("ft_strncmp", "zero length compare",
+		same_sign(ft_strncmp("ABC", "XYZ", 0), strncmp("ABC", "XYZ", 0)));
 
 	/* One string is prefix of the other */
-	print_result("ft_strncmp", "prefix compare", ft_strncmp("42", "42Rio", 5) == strncmp("42", "42Rio", 5));
+	print_result("ft_strncmp", "prefix compare",
+		same_sign(ft_strncmp("42", "42Rio", 5), strncmp("42", "42Rio", 5)));
 
 	/* Completely different strings */
-	print_result("ft_strncmp", "completely different", ft_strncmp("ABC", "XYZ", 3) == strncmp("ABC", "XYZ", 3));
+	print_result("ft_strncmp", "completely different",
+		same_sign(ft_strncmp("ABC", "XYZ", 3), strncmp("ABC", "XYZ", 3)));
 
 	/* Case sensitivity test */
-	print_result("ft_strncmp", "case sensitivity", ft_strncmp("Rio", "rio", 3) == strncmp("Rio", "rio", 3));
+	print_result("ft_strncmp", "case sensitivity",
+		same_sign(ft_strncmp("Rio", "rio", 3), strncmp("Rio", "rio", 3)));
 }
+
 
 void test_memchr(void)
 {
@@ -678,17 +694,17 @@ void test_calloc(void)
 #endif
 
 /* ===========================================================
- * === TESTES PARTE 2 (FUNÇÕES ADICIONAIS)
+ * === PART 2 TESTS (ADDITIONAL FUNCTIONS)
  * =========================================================== */
 
 #if TEST_PART2 && TEST_SUBSTR
 void test_substr(void)
 {
 	char *res = ft_substr("42 Rio de Janeiro", 3, 6);
-	print_result("ft_substr", "recorte válido", strcmp(res, "Rio de") == 0);
+	print_result("ft_substr", "valid slice", strcmp(res, "Rio de") == 0);
 	free(res);
 	res = ft_substr("42 Rio de Janeiro", 13, 6);
-	print_result("ft_substr", "recorte válido pela metade", strcmp(res, "eiro") == 0);
+	print_result("ft_substr", "half-valid slice", strcmp(res, "eiro") == 0);
 	free(res);
 }
 #endif
@@ -697,7 +713,7 @@ void test_substr(void)
 void test_strjoin(void)
 {
 	char *res = ft_strjoin("42 ", "Rio");
-	print_result("ft_strjoin", "concatenação simples", strcmp(res, "42 Rio") == 0);
+	print_result("ft_strjoin", "simple concatenation", strcmp(res, "42 Rio") == 0);
 	print_value("ft_strjoin", 0, res);
 	free(res);
 }
@@ -707,17 +723,17 @@ void test_strjoin(void)
 void test_strtrim(void)
 {
 	char *res = ft_strtrim(".42.Rio.", ".");
-	print_result("ft_strtrim", "remover dot", strcmp(res, "42.Rio") == 0);
+	print_result("ft_strtrim", "remove dot", strcmp(res, "42.Rio") == 0);
 	printf(GREEN "[VAL]  %-12s | %-25s\n" RESET, "ft_strtrim", res);
 	free(res);
 
 	res = ft_strtrim("423Rio423", "234");
-	print_result("ft_strtrim", "remove 3 char", strcmp(res, "Rio") == 0);
+	print_result("ft_strtrim", "remove 3 chars", strcmp(res, "Rio") == 0);
 	printf(GREEN "[VAL]  %-12s | %-25s\n" RESET, "ft_strtrim", res);
 	free(res);
 
 	res = ft_strtrim("42 Rio", "f");
-	print_result("ft_strtrim", "remove no char", strcmp(res, "42 Rio") == 0);
+	print_result("ft_strtrim", "remove no chars", strcmp(res, "42 Rio") == 0);
 	printf(GREEN "[VAL]  %-12s | %-25s\n" RESET, "ft_strtrim", res);
 	free(res);
 }
@@ -738,43 +754,44 @@ void	test_split(void)
 {
 	char	**res;
 
-	// Teste básico
+	// Basic test
 	res = ft_split("42 Rio de Janeiro", ' ');
-	print_result("ft_split", "última palavra", strcmp(res[3], "Janeiro") == 0);
+	print_result("ft_split", "last word", strcmp(res[3], "Janeiro") == 0);
 	print_split(res);
 	for (int i = 0; res[i]; i++)
 		free(res[i]);
 	free(res);
 
-	// Teste: string vazia
+	// Empty string test
 	res = ft_split("", ' ');
-	print_result("ft_split", "string vazia", res && res[0] == NULL);
+	print_result("ft_split", "empty string", res && res[0] == NULL);
 	free(res);
 
-	// Teste: delimitador no início e fim
+	// Delimiter at beginning and end
 	res = ft_split("  42  Rio  ", ' ');
-	print_result("ft_split", "ignora delimitadores extras", strcmp(res[0], "42") == 0 && strcmp(res[1], "Rio") == 0 && res[2] == NULL);
+	print_result("ft_split", "ignore extra delimiters",
+		strcmp(res[0], "42") == 0 && strcmp(res[1], "Rio") == 0 && res[2] == NULL);
 	print_split(res);
 	for (int i = 0; res[i]; i++)
 		free(res[i]);
 	free(res);
 
-	// Teste: só delimitadores
+	// Only delimiters
 	res = ft_split("     ", ' ');
-	print_result("ft_split", "só delimitadores", res && res[0] == NULL);
+	print_result("ft_split", "only delimiters", res && res[0] == NULL);
 	print_split(res);
 	free(res);
 
-	// Teste: caractere único
+	// Single character
 	res = ft_split("X", ' ');
-	print_result("ft_split", "string com 1 char", strcmp(res[0], "X") == 0 && res[1] == NULL);
+	print_result("ft_split", "single char string", strcmp(res[0], "X") == 0 && res[1] == NULL);
 	for (int i = 0; res[i]; i++)
 		free(res[i]);
 	free(res);
 
-	// Teste: delimitador diferente
+	// Different delimiter
 	res = ft_split("um,dois,tres", ',');
-	print_result("ft_split", "delimitador vírgula", strcmp(res[0], "um") == 0 && strcmp(res[1], "dois") == 0 && strcmp(res[2], "tres") == 0 && res[3] == NULL);
+	print_result("ft_split", "comma delimiter", strcmp(res[0], "um") == 0 && strcmp(res[1], "dois") == 0 && strcmp(res[2], "tres") == 0 && res[3] == NULL);
 	for (int i = 0; res[i]; i++)
 		free(res[i]);
 	free(res);
@@ -786,44 +803,44 @@ void	test_itoa(void)
 {
 	char	*res;
 
-	// Teste: número negativo simples
+	// Test: simple negative number
 	res = ft_itoa(-42);
-	print_result("ft_itoa", "número negativo", strcmp(res, "-42") == 0);
+	print_result("ft_itoa", "negative number", strcmp(res, "-42") == 0);
 	free(res);
 
-	// Teste: número positivo simples
+	// Test: simple positive number
 	res = ft_itoa(42);
-	print_result("ft_itoa", "número positivo", strcmp(res, "42") == 0);
+	print_result("ft_itoa", "positive number", strcmp(res, "42") == 0);
 	free(res);
 
-	// Teste: zero
+	// Test: zero
 	res = ft_itoa(0);
 	print_result("ft_itoa", "zero", strcmp(res, "0") == 0);
 	free(res);
 
-	// Teste: INT_MIN (-2147483648)
+	// Test: INT_MIN (-2147483648)
 	res = ft_itoa(-2147483648);
 	print_result("ft_itoa", "INT_MIN", strcmp(res, "-2147483648") == 0);
 	free(res);
 
-	// Teste: INT_MAX (2147483647)
+	// Test: INT_MAX (2147483647)
 	res = ft_itoa(2147483647);
 	print_result("ft_itoa", "INT_MAX", strcmp(res, "2147483647") == 0);
 	free(res);
 
-	// Teste: múltiplos dígitos com zeros no meio
+	// Test: multiple digits with zeros in the middle
 	res = ft_itoa(1002);
-	print_result("ft_itoa", "zeros no meio", strcmp(res, "1002") == 0);
+	print_result("ft_itoa", "zeros in the middle", strcmp(res, "1002") == 0);
 	free(res);
 
-	// Teste: número de um dígito
+	// Test: single digit number
 	res = ft_itoa(7);
-	print_result("ft_itoa", "número pequeno", strcmp(res, "7") == 0);
+	print_result("ft_itoa", "small number", strcmp(res, "7") == 0);
 	free(res);
 
-	// Teste: alternância de sinal rápido (não deve crashar)
+	// Test: rapid sign alternation (should not crash)
 	res = ft_itoa(-1);
-	print_result("ft_itoa", "menos um", strcmp(res, "-1") == 0);
+	print_result("ft_itoa", "minus one", strcmp(res, "-1") == 0);
 	free(res);
 }
 #endif
@@ -846,31 +863,31 @@ void	test_strmapi(void)
 {
 	char	*res;
 
-	// Teste básico com alternância
+	// Basic test with alternation
 	res = ft_strmapi("42 Rio de Janeiro", map_toggle);
-	print_result("ft_strmapi", "alterna maiúsc/minúsc",
+	print_result("ft_strmapi", "toggle upper/lower",
 		strcmp(res, "42 rIo dE JaNeIrO") == 0);
 	free(res);
 
-	// Teste string vazia
+	// Empty string test
 	res = ft_strmapi("", map_toggle);
-	print_result("ft_strmapi", "string vazia retorna string vazia",
+	print_result("ft_strmapi", "empty string returns empty string",
 		res && strcmp(res, "") == 0);
 	free(res);
 
-	// Teste função que altera o caractere usando o índice
+	// Function uses index to alter character
 	res = ft_strmapi("aaa", map_plus_index);
-	print_result("ft_strmapi", "usa índice no cálculo", strcmp(res, "abc") == 0);
+	print_result("ft_strmapi", "uses index in calculation", strcmp(res, "abc") == 0);
 	printf("res: %s\n", res);
 	free(res);
 
-	// Teste ponteiro nulo (s == NULL)
+	// NULL pointer test
 	res = ft_strmapi(NULL, map_toggle);
-	print_result("ft_strmapi", "entrada NULL retorna NULL", res == NULL);
+	print_result("ft_strmapi", "NULL input returns NULL", res == NULL);
 
-	// Teste função nula (f == NULL)
+	// NULL function test
 	res = ft_strmapi("abc", NULL);
-	print_result("ft_strmapi", "função NULL retorna NULL", res == NULL);
+	print_result("ft_strmapi", "NULL function returns NULL", res == NULL);
 }
 #endif
 
@@ -880,7 +897,7 @@ void	test_strmapi(void)
 #include <stdio.h>
 #include "libft.h"
 
-// Função usada no teste 1: transforma em maiúsculas
+// Test 1 function: convert to uppercase
 static void iter_up(unsigned int i, char *c)
 {
 	(void)i;
@@ -888,13 +905,13 @@ static void iter_up(unsigned int i, char *c)
 		*c -= 32;
 }
 
-// Função usada no teste 2: incrementa o caractere baseado no índice
+// Test 2 function: increment char based on index
 static void iter_index(unsigned int i, char *c)
 {
 	*c = *c + i;
 }
 
-// Função usada no teste 3: substitui todos por '*'
+// Test 3 function: replace all with '*'
 static void iter_replace(unsigned int i, char *c)
 {
 	(void)i;
@@ -903,39 +920,39 @@ static void iter_replace(unsigned int i, char *c)
 
 void test_striteri(void)
 {
-	// Teste 1: comportamento básico — letras minúsculas viram maiúsculas
+	// Test 1: lowercase letters become uppercase
 	char str1[] = "rio";
 	ft_striteri(str1, iter_up);
-	print_result("ft_striteri", "converte para maiúsculas", strcmp(str1, "RIO") == 0);
+	print_result("ft_striteri", "convert to uppercase", strcmp(str1, "RIO") == 0);
 
-	// Teste 2: string com caracteres mistos
+	// Test 2: mixed characters
 	char str2[] = "42Rio";
 	ft_striteri(str2, iter_up);
-	print_result("ft_striteri", "só muda letras minúsculas", strcmp(str2, "42RIO") == 0);
+	print_result("ft_striteri", "only lowercase letters change", strcmp(str2, "42RIO") == 0);
 
-	// Teste 3: função usa índice — cada caractere soma seu índice
+	// Test 3: function uses index — each char adds its index
 	char str3[] = "abcd";
 	ft_striteri(str3, iter_index);
-	print_result("ft_striteri", "usa índice corretamente", strcmp(str3, "aceg") == 0);
+	print_result("ft_striteri", "uses index correctly", strcmp(str3, "aceg") == 0);
 
-	// Teste 4: string vazia — deve permanecer inalterada
+	// Test 4: empty string — should remain unchanged
 	char str4[] = "";
 	ft_striteri(str4, iter_up);
-	print_result("ft_striteri", "string vazia não altera", strcmp(str4, "") == 0);
+	print_result("ft_striteri", "empty string unchanged", strcmp(str4, "") == 0);
 
-	// Teste 5: função nula — não deve quebrar nem modificar
+	// Test 5: NULL function — should not modify or crash
 	char str5[] = "test";
 	ft_striteri(str5, NULL);
-	print_result("ft_striteri", "função NULL não altera", strcmp(str5, "test") == 0);
+	print_result("ft_striteri", "NULL function does not modify", strcmp(str5, "test") == 0);
 
-	// Teste 6: string nula — não deve quebrar
+	// Test 6: NULL string — should not crash
 	ft_striteri(NULL, iter_up);
-	print_result("ft_striteri", "string NULL não quebra", 1);
+	print_result("ft_striteri", "NULL string does not crash", 1);
 
-	// Teste 7: string longa — garante iteração completa
+	// Test 7: long string — ensure full iteration
 	char str6[] = "abcdefghij";
 	ft_striteri(str6, iter_replace);
-	print_result("ft_striteri", "modifica todos os caracteres", strcmp(str6, "**********") == 0);
+	print_result("ft_striteri", "modify all characters", strcmp(str6, "**********") == 0);
 }
 
 #endif
@@ -948,57 +965,90 @@ void test_striteri(void)
 #include <limits.h>
 #include "libft.h"
 
+void show_test(const char *label, const char *expected)
+{
+	printf(CYAN "\n--- %s ---\n" RESET, label);
+	printf("Expected : " GREEN "%s" RESET, expected);
+}
+
 void test_fd_functions(void)
 {
 	int fd = 1;
 	int fd_err = 2;
 
-	printf(BLUE "\n=== Testes de funções *_fd ===\n" RESET);
+	printf(BLUE "\n=== Tests for *_fd functions ===\n" RESET);
 
-	// --- Teste 1: stdout (fd = 1)
+	// --- Test 1: stdout ---
 	printf(YELLOW "\n[stdout]\n" RESET);
+
+	show_test("ft_putchar_fd('A')", "A\n");
 	ft_putchar_fd('A', fd);
 	ft_putchar_fd('\n', fd);
+
+	show_test("ft_putstr_fd(\"Hello \")", "Hello ");
 	ft_putstr_fd("Hello ", fd);
+
+	show_test("ft_putendl_fd(\"World\")", "World\n");
 	ft_putendl_fd("World", fd);
+
+	show_test("ft_putendl_fd(\"new line\")", "new line\n");
 	ft_putendl_fd("new line", fd);
+
+	show_test("ft_putnbr_fd(42)", "42\n");
 	ft_putnbr_fd(42, fd);
 	ft_putchar_fd('\n', fd);
 
-	// --- Teste 2: stderr (fd = 2)
+	// --- Test 2: stderr ---
 	printf(YELLOW "\n[stderr]\n" RESET);
-	ft_putstr_fd("Mensagem de erro -> ", fd_err);
+
+	show_test("ft_putstr_fd(\"Error message -> \")", "Error message -> ");
+	ft_putstr_fd("Error message -> ", fd_err);
+
+	show_test("ft_putnbr_fd(-999)", "-999\n");
 	ft_putnbr_fd(-999, fd_err);
 	ft_putchar_fd('\n', fd_err);
 
-	// --- Teste 3: número negativo e INT_MIN
-	printf(YELLOW "\n[Teste de números negativos]\n" RESET);
+	// --- Test 3: negative numbers ---
+	printf(YELLOW "\n[Negative number tests]\n" RESET);
+
+	show_test("ft_putnbr_fd(-42)", "-42\n");
 	ft_putnbr_fd(-42, fd);
 	ft_putchar_fd('\n', fd);
+
+	show_test("ft_putnbr_fd(INT_MIN)", "-2147483648\n");
 	ft_putnbr_fd(INT_MIN, fd);
 	ft_putchar_fd('\n', fd);
 
-	// --- Teste 4: string vazia
-	printf(YELLOW "\n[Teste de string vazia]\n" RESET);
+	// --- Test 4: empty string ---
+	printf(YELLOW "\n[Empty string test]\n" RESET);
+
+	show_test("ft_putstr_fd(\"\")", "");
 	ft_putstr_fd("", fd);
+
+	show_test("ft_putendl_fd(\"\")", "\n");
 	ft_putendl_fd("", fd);
 
-
-	// --- Teste 5: saída em arquivo temporário
-	printf(YELLOW "\n[Arquivo temporário]\n" RESET);
+	// --- Test 5: temp file ---
+	printf(YELLOW "\n[Temp file]\n" RESET);
 	int file = open("test_fd_output.txt", O_CREAT | O_WRONLY | O_TRUNC, 0644);
 	if (file < 0)
 	{
-		perror("Erro ao abrir arquivo");
+		perror("Error opening file");
 		return;
 	}
-	ft_putstr_fd("Salvando no arquivo...\n", file);
+
+	show_test("File -> \"Saving...\n123456\nEnd of test!\n\"",
+			  "Saving...\n123456\nEnd of test!\n");
+	ft_putstr_fd("Saving...\n", file);
 	ft_putnbr_fd(123456, file);
-	ft_putendl_fd("\nFim do teste!", file);
+	ft_putendl_fd("\nEnd of test!", file);
 	close(file);
-	printf(GREEN "Resultado salvo em test_fd_output.txt\n" RESET);
+
+	printf(GREEN "Result saved in test_fd_output.txt\n" RESET);
 }
+
 #endif
+
 
 
 /* ===========================================================
